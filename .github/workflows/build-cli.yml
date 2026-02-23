@@ -1,0 +1,66 @@
+name: Build Nar CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-amd64
+          - os: windows-latest
+            platform: windows-amd64
+    runs-on: ${{ matrix.os }}
+    shell: bash
+
+    steps:
+      - name: Clone nmono (private)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
+
+      - name: Read build config
+        run: |
+          source nmono/nar/buildscripts/vars.sh
+          echo "PYTHON_VERSION=$PYTHON_VERSION" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build narcli
+        run: |
+          cd nmono/nar
+          bash buildscripts/build_narcli_prod.sh "${{ inputs.version }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: narcli-${{ inputs.version }}-${{ matrix.platform }}
+          path: ~/nardist/narcli-${{ inputs.version }}-${{ matrix.platform }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: cli-v${{ inputs.version }}
+          name: Nar CLI v${{ inputs.version }}
+          files: artifacts/**/*
+          draft: true
