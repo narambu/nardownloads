@@ -1,0 +1,65 @@
+name: Build VSIX (Windows amd64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Clone nmono (private)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
+
+      - name: Read build config
+        run: |
+          echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION=' nmono/nar/buildscripts/vars.sh | head -1 | cut -d'"' -f2)" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build VSIX
+        run: |
+          echo "TODO: VSIX build not yet implemented"
+          exit 1
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nar-${{ inputs.version }}-windows-amd64.vsix
+          path: ~/nardist/nar-${{ inputs.version }}-windows-amd64.vsix
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: vsix-v${{ inputs.version }}-windows-amd64
+          name: Nar VSIX v${{ inputs.version }} (Windows amd64)
+          files: artifacts/**/*
+          draft: true

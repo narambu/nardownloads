@@ -1,4 +1,4 @@
-name: Build Nar CLI
+name: Build CLI (Windows amd64)
 
 on:
   workflow_dispatch:
@@ -10,14 +10,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux-amd64
-          - os: windows-latest
-            platform: windows-amd64
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     defaults:
       run:
         shell: bash
@@ -29,8 +22,7 @@ jobs:
 
       - name: Read build config
         run: |
-          source nmono/nar/buildscripts/vars.sh
-          echo "PYTHON_VERSION=$PYTHON_VERSION" >> $GITHUB_ENV
+          echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION=' nmono/nar/buildscripts/vars.sh | head -1 | cut -d'"' -f2)" >> $GITHUB_ENV
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -45,8 +37,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: narcli-${{ inputs.version }}-${{ matrix.platform }}
-          path: ~/nardist/narcli-${{ inputs.version }}-${{ matrix.platform }}.*
+          name: narcli-${{ inputs.version }}-windows-amd64
+          path: ~/nardist/narcli-${{ inputs.version }}-windows-amd64.*
 
   release:
     needs: build
@@ -62,7 +54,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cli-v${{ inputs.version }}
-          name: Nar CLI v${{ inputs.version }}
+          tag_name: cli-v${{ inputs.version }}-windows-amd64
+          name: Nar CLI v${{ inputs.version }} (Windows amd64)
           files: artifacts/**/*
           draft: true
