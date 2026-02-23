@@ -18,7 +18,9 @@ jobs:
           - os: windows-latest
             platform: windows-amd64
     runs-on: ${{ matrix.os }}
-    shell: bash
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Clone nmono (private)
