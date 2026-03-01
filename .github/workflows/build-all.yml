@@ -1,0 +1,28 @@
+name: Build All (Windows + Linux)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  cli-linux:
+    uses: ./.github/workflows/build-cli-linux-amd64.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  cli-windows:
+    uses: ./.github/workflows/build-cli-windows-amd64.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  vsix-windows:
+    uses: ./.github/workflows/build-vsix-windows-amd64.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets: inherit
