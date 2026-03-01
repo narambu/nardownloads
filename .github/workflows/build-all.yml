@@ -10,19 +10,114 @@ on:
 
 jobs:
   cli-linux:
-    uses: ./.github/workflows/build-cli-linux-amd64.yml
-    with:
-      version: ${{ inputs.version }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clone nmono (private)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
+
+      - name: Read build config
+        run: |
+          echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION=' nmono/nar/buildscripts/vars.sh | head -1 | cut -d'"' -f2)" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build narcli
+        run: |
+          cd nmono/nar
+          bash buildscripts/nar/common/build_narcli_prod.sh "${{ inputs.version }}"
+
+      - name: Upload to latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest --repo ${{ github.repository }} &>/dev/null || \
+            gh release create latest --repo ${{ github.repository }} --title "Latest" --notes "Latest releases"
+          for f in ~/nardist/narcli-${{ inputs.version }}-linux-amd64.*; do
+            [ -f "$f" ] && gh release upload latest "$f" --repo ${{ github.repository }} --clobber
+          done
 
   cli-windows:
-    uses: ./.github/workflows/build-cli-windows-amd64.yml
-    with:
-      version: ${{ inputs.version }}
-    secrets: inherit
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clone nmono (private)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
+
+      - name: Read build config
+        run: |
+          echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION=' nmono/nar/buildscripts/vars.sh | head -1 | cut -d'"' -f2)" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build narcli
+        run: |
+          cd nmono/nar
+          bash buildscripts/nar/common/build_narcli_prod.sh "${{ inputs.version }}"
+
+      - name: Upload to latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest --repo ${{ github.repository }} &>/dev/null || \
+            gh release create latest --repo ${{ github.repository }} --title "Latest" --notes "Latest releases"
+          for f in ~/nardist/narcli-${{ inputs.version }}-windows-amd64.*; do
+            [ -f "$f" ] && gh release upload latest "$f" --repo ${{ github.repository }} --clobber
+          done
 
   vsix-windows:
-    uses: ./.github/workflows/build-vsix-windows-amd64.yml
-    with:
-      version: ${{ inputs.version }}
-    secrets: inherit
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Clone nmono (private)
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
+
+      - name: Read build config
+        run: |
+          echo "PYTHON_VERSION=$(grep 'PYTHON_VERSION=' nmono/nar/buildscripts/vars.sh | head -1 | cut -d'"' -f2)" >> $GITHUB_ENV
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build VSIX
+        run: |
+          cd nmono/nar
+          bash buildscripts/nar/common/build_vsix_prod.sh "${{ inputs.version }}"
+
+      - name: Upload to latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest --repo ${{ github.repository }} &>/dev/null || \
+            gh release create latest --repo ${{ github.repository }} --title "Latest" --notes "Latest releases"
+          for f in ~/nardist/nar-${{ inputs.version }}-windows-amd64.*; do
+            [ -f "$f" ] && gh release upload latest "$f" --repo ${{ github.repository }} --clobber
+          done
