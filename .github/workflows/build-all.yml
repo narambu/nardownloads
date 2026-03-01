@@ -19,8 +19,7 @@ jobs:
     steps:
       - name: Clone nmono (private)
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
-          cd nmono && git sparse-checkout set nar
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
 
       - name: Read build config
         run: |
@@ -56,8 +55,7 @@ jobs:
     steps:
       - name: Clone nmono (private)
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
-          cd nmono && git sparse-checkout set nar
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
 
       - name: Read build config
         run: |
@@ -93,8 +91,7 @@ jobs:
     steps:
       - name: Clone nmono (private)
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
-          cd nmono && git sparse-checkout set nar
+          git clone --depth 1 https://x-access-token:${{ secrets.NMONO_READ_TOKEN }}@github.com/narambu/nmono.git nmono
 
       - name: Read build config
         run: |
